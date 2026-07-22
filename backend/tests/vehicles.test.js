@@ -230,7 +230,7 @@ describe("Vehicle API", () => {
     expect(res.body.data.length).toBe(0);
   });
 
-  // --- Purchase ---
+  // purchase test
   it("should purchase vehicle and decrease quantity", async () => {
     const created = await request(app)
       .post("/api/vehicles")
@@ -286,4 +286,65 @@ describe("Vehicle API", () => {
     expect(res.statusCode).toBe(404);
     expect(res.body.success).toBe(false);
   });
+
+  // restock (admin) test
+  it("should restock vehicle as admin", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Toyota",
+        model: uniqueModel("Innova"),
+        category: "SUV",
+        price: 2000000,
+        quantity: 2,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .post(`/api/vehicles/${id}/restock`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ quantity: 3 });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.quantity).toBe(5);
+  });
+
+  it("should return 403 for non-admin user", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Toyota",
+        model: uniqueModel("Fortuner"),
+        category: "SUV",
+        price: 3500000,
+        quantity: 1,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .post(`/api/vehicles/${id}/restock`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ quantity: 5 });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("should return 404 when vehicle not found on restock", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+
+    const res = await request(app)
+      .post(`/api/vehicles/${fakeId}/restock`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ quantity: 2 });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
 });
+
