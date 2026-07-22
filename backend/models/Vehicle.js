@@ -5,10 +5,12 @@ const vehicleSchema = new mongoose.Schema(
     make: {
       type: String,
       required: true,
+      trim: true,
     },
     model: {
       type: String,
       required: true,
+      trim: true,
     },
     category: {
       type: String,
