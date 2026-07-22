@@ -7,12 +7,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.json({ message: "API Running" });
 });
 
 app.use("/api/auth", authRoutes);
+app.use(errorHandler);
 
 export default app;

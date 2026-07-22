@@ -1,22 +1,101 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import asyncHandler from "../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
+import { JWT_SECRET, JWT_EXPIRATION } from "../config/env.config.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
+  console.log("REGISTER HIT");
+  const { name, email, password } = req.body;
+
+  //check if user already exsist
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    throw new AppError("User with this email already exists.", 400);
+  }
+
+  //create user
+  const newUser = await User.create({
+    name,
+    email,
+    password,
+  });
+
+  //generate jwt token
+  const token = jwt.sign(
+    { userId: newUser._id, role: newUser.role },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_EXPIRATION,
+    },
+  );
+
+  //store token in cookie
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+
+  //remove password from response
+  const userResponse = newUser.toObject();
+  delete userResponse.password;
   res.status(201).json({
-    message: "User Registered",
+    success: true,
+    token,
+    data: userResponse,
   });
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  //find user
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+
+  // Compare password using model method
+  const isMatch = await user.matchPassword(password);
+
+  if (!isMatch) {
+    throw new AppError("Invalid email or password", 401);
+  }
+
+  //generate jwt token
+  const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRATION,
+  });
+
+  // Set token in cookie
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+
+  //remove password from response
+  const userResponse = user.toObject();
+  delete userResponse.password;
+
   res.status(200).json({
-    message: "Login Success",
+    success: true,
+    token,
+    data: userResponse,
   });
 });
 
 export const getMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+
   res.status(200).json({
-    message: "My Profile",
+    success: true,
+    data: user,
   });
 });
