@@ -41,3 +41,29 @@ describe("Auth API", () => {
     expect(res.body.success).toBe(false);
   });
 });
+
+describe("POST /api/auth/login", () => {
+  it("should login user successfully with valid credentials", async () => {
+    const user = {
+      name: "Test User",
+      email: `test${Date.now()}@example.com`,
+      password: "test1234",
+      role: "user",
+    };
+
+    // First create user
+    await request(app).post("/api/auth/register").send(user);
+
+    // Login
+    const response = await request(app).post("/api/auth/login").send({
+      email: user.email,
+      password: user.password,
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body).toHaveProperty("token");
+
+    expect(response.body.user.email).toBe(user.email);
+  });
+});
