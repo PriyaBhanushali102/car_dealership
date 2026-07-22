@@ -229,4 +229,61 @@ describe("Vehicle API", () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.length).toBe(0);
   });
+
+  // --- Purchase ---
+  it("should purchase vehicle and decrease quantity", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Honda",
+        model: uniqueModel("Civic"),
+        category: "Sedan",
+        price: 1100000,
+        quantity: 5,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .post(`/api/vehicles/${id}/purchase`)
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.quantity).toBe(4);
+  });
+
+  it("should return 400 when quantity is 0", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Honda",
+        model: uniqueModel("Jazz"),
+        category: "Hatchback",
+        price: 900000,
+        quantity: 0,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .post(`/api/vehicles/${id}/purchase`)
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("should return 404 when vehicle not found", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+
+    const res = await request(app)
+      .post(`/api/vehicles/${fakeId}/purchase`)
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
 });
