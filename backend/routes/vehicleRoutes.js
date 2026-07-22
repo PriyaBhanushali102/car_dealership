@@ -5,7 +5,8 @@ import {
   searchVehicles,
   updateVehicle,
   deleteVehicle,
-  purchaseVehicle, 
+  purchaseVehicle,
+  restockVehicle, 
 } from "../controllers/vehicleController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { adminOnly} from "../middleware/adminMiddleware.js";
@@ -18,5 +19,6 @@ router.get("/search", protect, searchVehicles);
 router.put("/:id", protect,updateVehicle);
 router.delete("/:id", protect, adminOnly, deleteVehicle);
 router.post("/:id/purchase", protect, purchaseVehicle);
+router.post("/:id/restock", protect, adminOnly, restockVehicle);
 
 export default router;

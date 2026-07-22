@@ -115,3 +115,29 @@ export const purchaseVehicle = asyncHandler(async (req, res) => {
     data: vehicle,
   });
 });
+
+
+// restock vehicles — increase quantity (Admin only — enforced in routes)
+export const restockVehicle = asyncHandler(async (req, res) => {
+  const { quantity } = req.body;
+  const amount = Number(quantity);
+
+  if (!amount || amount <= 0) {
+    throw new AppError("Please provide a valid quantity to restock", 400);
+  }
+
+  const vehicle = await Vehicle.findById(req.params.id);
+
+  if (!vehicle) {
+    throw new AppError("Vehicle not found", 404);
+  }
+
+  vehicle.quantity += amount;
+  await vehicle.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Restock successful",
+    data: vehicle,
+  });
+});
