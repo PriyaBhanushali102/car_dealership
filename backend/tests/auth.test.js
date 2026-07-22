@@ -40,30 +40,42 @@ describe("Auth API", () => {
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
   });
-});
 
-describe("POST /api/auth/login", () => {
-  it("should login user successfully with valid credentials", async () => {
-    const user = {
-      name: "Test User",
-      email: `test${Date.now()}@example.com`,
-      password: "test1234",
-      role: "user",
-    };
+  it("should login an existing user", async () => {
+    const email = `login${Date.now()}@example.com`;
 
-    // First create user
-    await request(app).post("/api/auth/register").send(user);
-
-    // Login
-    const response = await request(app).post("/api/auth/login").send({
-      email: user.email,
-      password: user.password,
+    // Register user first
+    await request(app).post("/api/auth/register").send({
+      name: "Login User",
+      email,
+      password: "123456",
     });
 
-    expect(response.statusCode).toBe(200);
+    // Login
+    const res = await request(app).post("/api/auth/login").send({
+      email,
+      password: "123456",
+    });
 
-    expect(response.body).toHaveProperty("token");
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.token).toBeDefined();
+    expect(res.body.data.email).toBe(email);
+  });
 
-    expect(response.body.user.email).toBe(user.email);
+  it("should not login with wrong password", async () => {
+    const email = `wrong${Date.now()}@example.com`;
+    await request(app).post("/api/auth/register").send({
+      name: "Wrong Password User",
+      email,
+      password: "123456",
+    });
+
+    const res = await request(app).post("/api/auth/login").send({
+      email,
+      password: "wrongpassword",
+    });
+    expect(res.statusCode).toBe(401);
+    expect(res.body.success).toBe(false);
   });
 });
