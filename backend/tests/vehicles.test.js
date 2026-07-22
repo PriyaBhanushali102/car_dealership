@@ -61,6 +61,7 @@ afterAll(async () => {
 
 describe("Vehicle API", () => {
 
+  // create vehicle test
   it("should return 401 when creating vehicle without token", async () => {
     const res = await request(app)
       .post("/api/vehicles")
@@ -91,6 +92,7 @@ describe("Vehicle API", () => {
     expect(res.body.success).toBe(true);
   });
 
+  // get all vehicles test
   it("should get all vehicles", async () => {
     await request(app)
       .post("/api/vehicles")
@@ -113,6 +115,7 @@ describe("Vehicle API", () => {
     expect(res.body.data.length).toBeGreaterThan(0);
   });
 
+  // update test
   it("should update a vehicle", async () => {
     const model = uniqueModel("Focus");
 
@@ -159,6 +162,7 @@ describe("Vehicle API", () => {
     expect(res.statusCode).toBe(404);
   });
 
+  // delete test
   it("should delete a vehicle as admin", async () => {
     const created = await request(app)
       .post("/api/vehicles")
@@ -183,29 +187,46 @@ describe("Vehicle API", () => {
   
   it("should return 404 when deleting non-existent vehicle", async () => {
     const fakeId = new mongoose.Types.ObjectId();
-  
+
     const res = await request(app)
       .delete(`/api/vehicles/${fakeId}`)
       .set("Authorization", `Bearer ${adminToken}`);
-  
+
     expect(res.statusCode).toBe(404);
     expect(res.body.success).toBe(false);
   });
-  
 
+  // search test
+  it("should search vehicles by make/model/category", async () => {
+
+    await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Toyota",
+        model: uniqueModel("Corolla"),
+        category: "Sedan",
+        price: 1500000,
+        quantity: 3,
+      });
+
+    const res = await request(app)
+      .get("/api/vehicles/search?make=Toyota")
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.length).toBeGreaterThan(0);
+    expect(res.body.data[0].make).toBe("Toyota");
+  });
+
+  it("should return empty array when no vehicles found", async () => {
+    const res = await request(app)
+      .get("/api/vehicles/search?make=Ferrari")
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.length).toBe(0);
+  });
 });
-
-
-
-// export const deleteVehicle = asyncHandler(async (req, res) => {
-//   const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
-
-//   if (!vehicle) {
-//     throw new AppError("Vehicle not found", 404);
-//   }
-
-//   res.status(200).json({
-//     success: true,
-//     message: "Vehicle deleted successfully",
-//   });
-// });
