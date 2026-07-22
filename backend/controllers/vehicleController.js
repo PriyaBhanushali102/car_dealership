@@ -48,16 +48,3 @@ export const updateVehicle = asyncHandler(async (req, res) => {
     data: vehicle,
   });
 });
-
-export const deleteVehicle = asyncHandler(async (req, res) => {
-  const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
-
-  if (!vehicle) {
-    throw new AppError("Vehicle not found", 404);
-  }
-
-  res.status(200).json({
-    success: true,
-    message: "Vehicle deleted successfully",
-  });
-});

@@ -3,16 +3,15 @@ import {
   createVehicle,
   getVehicles,
   updateVehicle,
-  deleteVehicle,
 } from "../controllers/vehicleController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { adminOnly } from "../middleware/adminMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createVehicle);
-router.get("/", getVehicles);
-router.put("/:id", updateVehicle);
-router.delete("/:id", protect, adminOnly, deleteVehicle);
+
+
+router.post("/", protect, createVehicle);
+router.get("/", protect, getVehicles);
+router.put("/:id", protect,updateVehicle);
 
 export default router;
