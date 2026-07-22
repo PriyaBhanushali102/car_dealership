@@ -78,4 +78,31 @@ describe("Auth API", () => {
     expect(res.statusCode).toBe(401);
     expect(res.body.success).toBe(false);
   });
+
+  it("should get current user profile", async () => {
+    const email = `me${Date.now()}@example.com`;
+
+    const registerRes = await request(app).post("/api/auth/register").send({
+      name: "Profile User",
+      email,
+      password: "123456",
+    });
+
+    const token = registerRes.body.token;
+
+    const res = await request(app)
+      .get("/api/auth/me")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.email).toBe(email);
+  });
+
+  it("should deny access without token", async () => {
+    const res = await request(app).get("/api/auth/me");
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
 });
