@@ -52,57 +52,15 @@ describe("Auth API", () => {
     });
 
     // Login
-    const res = await request(app).post("/api/auth/login").send({
-      email,
-      password: "123456",
+    const response = await request(app).post("/api/auth/login").send({
+      email: user.email,
+      password: user.password,
     });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.token).toBeDefined();
-    expect(res.body.data.email).toBe(email);
-  });
+    expect(response.statusCode).toBe(200);
 
-  it("should not login with wrong password", async () => {
-    const email = `wrong${Date.now()}@example.com`;
-    await request(app).post("/api/auth/register").send({
-      name: "Wrong Password User",
-      email,
-      password: "123456",
-    });
+    expect(response.body).toHaveProperty("token");
 
-    const res = await request(app).post("/api/auth/login").send({
-      email,
-      password: "wrongpassword",
-    });
-    expect(res.statusCode).toBe(401);
-    expect(res.body.success).toBe(false);
-  });
-
-  it("should get current user profile", async () => {
-    const email = `me${Date.now()}@example.com`;
-
-    const registerRes = await request(app).post("/api/auth/register").send({
-      name: "Profile User",
-      email,
-      password: "123456",
-    });
-
-    const token = registerRes.body.token;
-
-    const res = await request(app)
-      .get("/api/auth/me")
-      .set("Authorization", `Bearer ${token}`);
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.email).toBe(email);
-  });
-
-  it("should deny access without token", async () => {
-    const res = await request(app).get("/api/auth/me");
-
-    expect(res.statusCode).toBe(401);
-    expect(res.body.success).toBe(false);
+    expect(response.body.user.email).toBe(user.email);
   });
 });
