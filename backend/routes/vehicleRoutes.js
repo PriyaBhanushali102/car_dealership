@@ -2,9 +2,10 @@ import express from "express";
 import {
   createVehicle,
   getVehicles,
+  searchVehicles,
   updateVehicle,
-  deleteVehicle, 
-  searchVehicles 
+  deleteVehicle,
+  purchaseVehicle, 
 } from "../controllers/vehicleController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { adminOnly} from "../middleware/adminMiddleware.js";
@@ -16,5 +17,6 @@ router.get("/", protect, getVehicles);
 router.get("/search", protect, searchVehicles);
 router.put("/:id", protect,updateVehicle);
 router.delete("/:id", protect, adminOnly, deleteVehicle);
+router.post("/:id/purchase", protect, purchaseVehicle);
 
 export default router;

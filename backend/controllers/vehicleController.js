@@ -92,3 +92,26 @@ export const deleteVehicle = asyncHandler(async (req, res) => {
     message: "Vehicle deleted successfully",
   });
 });
+
+
+// purchase vehicle — decrease quantity by 1
+export const purchaseVehicle = asyncHandler(async (req, res) => {
+  const vehicle = await Vehicle.findById(req.params.id);
+
+  if (!vehicle) {
+    throw new AppError("Vehicle not found", 404);
+  }
+
+  if (vehicle.quantity <= 0) {
+    throw new AppError("Vehicle out of stock", 400);
+  }
+
+  vehicle.quantity -= 1;
+  await vehicle.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Purchase successful",
+    data: vehicle,
+  });
+});
