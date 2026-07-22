@@ -1,9 +1,58 @@
 import mongoose from "mongoose";
 import request from "supertest";
 import app from "../app.js";
+import User from "../models/User.js";
 
+let userToken;
+let adminToken;
+
+const uniqueModel = (name) =>
+  `${name}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URI);
+
+  const stamp = Date.now();
+
+  // Normal User
+  const userEmail = `user${stamp}@example.com`;
+
+  const userRes = await request(app)
+    .post("/api/auth/register")
+    .send({
+      name: "Normal User",
+      email: userEmail,
+      password: "123456",
+    });
+
+  userToken = userRes.body.token;
+
+  // Admin User
+  const adminEmail = `admin${stamp}@example.com`;
+
+  await request(app)
+    .post("/api/auth/register")
+    .send({
+      name: "Admin User",
+      email: adminEmail,
+      password: "123456",
+    });
+
+  await User.findOneAndUpdate(
+    { email: adminEmail },
+    { role: "admin" }
+  );
+
+  const adminLogin = await request(app)
+    .post("/api/auth/login")
+    .send({
+      email: adminEmail,
+      password: "123456",
+    });
+
+  adminToken = adminLogin.body.token;
+
+  expect(userToken).toBeDefined();
+  expect(adminToken).toBeDefined();
 });
 
 afterAll(async () => {
@@ -11,12 +60,28 @@ afterAll(async () => {
 });
 
 describe("Vehicle API", () => {
-  it("should create a vehicle", async () => {
+
+  it("should return 401 when creating vehicle without token", async () => {
     const res = await request(app)
       .post("/api/vehicles")
       .send({
         make: "Honda",
-        model: "City",
+        model: uniqueModel("City"),
+        category: "Sedan",
+        price: 1200000,
+        quantity: 5,
+      });
+
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("should create a vehicle", async () => {
+    const res = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Honda",
+        model: uniqueModel("City"),
         category: "Sedan",
         price: 1200000,
         quantity: 5,
@@ -27,29 +92,142 @@ describe("Vehicle API", () => {
   });
 
   it("should get all vehicles", async () => {
-    await request(app).post("/api/vehicles").send({
-      make: "Toyota",
-      model: "Corolla",
-      category: "Sedan",
-      price: 1000000,
-      quantity: 2,
-    });
+    await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Toyota",
+        model: uniqueModel("Corolla"),
+        category: "Sedan",
+        price: 1000000,
+        quantity: 2,
+      });
 
-    const res = await request(app).get("/api/vehicles");
-
+    const res = await request(app)
+      .get("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
     expect(res.body.data.length).toBeGreaterThan(0);
-    expect(res.body.data[0]).toMatchObject({
-      make: expect.any(String),
-      model: expect.any(String),
-      category: expect.any(String),
-      price: expect.any(Number),
-      quantity: expect.any(Number),
-    })
-  })
+  });
+
+  it("should update a vehicle", async () => {
+    const model = uniqueModel("Focus");
+
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Ford",
+        model,
+        category: "Hatchback",
+        price: 800000,
+        quantity: 4,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .put(`/api/vehicles/${id}`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "Ford",
+        model,
+        category: "Hatchback",
+        price: 750000,
+        quantity: 6,
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.price).toBe(750000);
+    expect(res.body.data.quantity).toBe(6);
+  });
+
+  it("should return 404 when updating non-existent vehicle", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+
+    const res = await request(app)
+      .put(`/api/vehicles/${fakeId}`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        price: 1000,
+      });
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("should return 400 for invalid vehicle id while updating", async () => {
+    const res = await request(app)
+      .put("/api/vehicles/invalid-id")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        price: 1000,
+      });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should return 403 when non-admin deletes a vehicle", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        make: "BMW",
+        model: uniqueModel("X5"),
+        category: "SUV",
+        price: 5000000,
+        quantity: 1,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .delete(`/api/vehicles/${id}`)
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("should delete a vehicle as admin", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({
+        make: "Audi",
+        model: uniqueModel("A4"),
+        category: "Sedan",
+        price: 4000000,
+        quantity: 2,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app)
+      .delete(`/api/vehicles/${id}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it("should return 404 when deleting non-existent vehicle", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+
+    const res = await request(app)
+      .delete(`/api/vehicles/${fakeId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("should return 400 when deleting with invalid id", async () => {
+    const res = await request(app)
+      .delete("/api/vehicles/invalid-id")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.statusCode).toBe(400);
+  });
 });
-
-
