@@ -42,25 +42,24 @@ describe("Auth API", () => {
   });
 
   it("should login an existing user", async () => {
-    const email = `login${Date.now()}@example.com`;
-
-    // Register user first
-    await request(app).post("/api/auth/register").send({
+    const user = {
       name: "Login User",
-      email,
-      password: "123456",
-    });
+    email: `login${Date.now()}@example.com`,
+    password: "123456",
+    }
 
-    // Login
-    const response = await request(app).post("/api/auth/login").send({
-      email: user.email,
-      password: user.password,
-    });
+    // Register first
+  await request(app).post("/api/auth/register").send(user);
+
+
+    // Then login with the same credentials
+  const response = await request(app).post("/api/auth/login").send({
+    email: user.email,
+    password: user.password,
+  });
 
     expect(response.statusCode).toBe(200);
-
     expect(response.body).toHaveProperty("token");
-
-    expect(response.body.user.email).toBe(user.email);
+    expect(response.body.data.email).toBe(user.email);
   });
 });

@@ -14,6 +14,10 @@ export const protect = asyncHandler(async (req, res, next) => {
     token = req.headers.authorization.split(" ")[1];
   }
 
+  if (!token && req.cookies?.token) {
+    token = req.cookies.token;
+  }
+
   if (!token) {
     throw new AppError("Access denied. No token provided.", 401);
   }
