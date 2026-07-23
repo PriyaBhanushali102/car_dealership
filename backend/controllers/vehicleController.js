@@ -38,7 +38,7 @@ export const getVehicles = asyncHandler(async (req, res) => {
   });
 });
 
-// GET /api/vehicles/search?make=&model=&category=&minPrice=&maxPrice=
+// search vehicle by model, category, minPrice, maxPrice
 export const searchVehicles = asyncHandler(async (req, res) => {
   const { make, model, category, minPrice, maxPrice } = req.query;
   const filter = {};
@@ -62,10 +62,10 @@ export const searchVehicles = asyncHandler(async (req, res) => {
   });
 });
 
-// update a vehicle
+// update a vehicle (fields only)
 export const updateVehicle = asyncHandler(async (req, res) => {
   const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 
@@ -81,18 +81,19 @@ export const updateVehicle = asyncHandler(async (req, res) => {
 
 // delete a vehicle (Admin only — enforced in routes)
 export const deleteVehicle = asyncHandler(async (req, res) => {
-  const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
+  const vehicle = await Vehicle.findById(req.params.id);
 
   if (!vehicle) {
     throw new AppError("Vehicle not found", 404);
   }
+
+  await vehicle.deleteOne();
 
   res.status(200).json({
     success: true,
     message: "Vehicle deleted successfully",
   });
 });
-
 
 // purchase vehicle — decrease quantity by 1
 export const purchaseVehicle = asyncHandler(async (req, res) => {
@@ -115,7 +116,6 @@ export const purchaseVehicle = asyncHandler(async (req, res) => {
     data: vehicle,
   });
 });
-
 
 // restock vehicles — increase quantity (Admin only — enforced in routes)
 export const restockVehicle = asyncHandler(async (req, res) => {

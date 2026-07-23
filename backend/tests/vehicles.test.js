@@ -130,10 +130,11 @@ describe("Vehicle API", () => {
         quantity: 4,
       });
 
+    expect(created.statusCode).toBe(201);
     const id = created.body.data._id;
 
     const res = await request(app)
-      .put(`/api/vehicles/${id}`)
+      .patch(`/api/vehicles/${id}`)
       .set("Authorization", `Bearer ${userToken}`)
       .send({
         make: "Ford",
@@ -153,7 +154,7 @@ describe("Vehicle API", () => {
     const fakeId = new mongoose.Types.ObjectId();
 
     const res = await request(app)
-      .put(`/api/vehicles/${fakeId}`)
+      .patch(`/api/vehicles/${fakeId}`)
       .set("Authorization", `Bearer ${userToken}`)
       .send({
         price: 1000,
