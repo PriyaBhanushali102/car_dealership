@@ -33,8 +33,8 @@ export const registerUser = asyncHandler(async (req, res) => {
   //store token in cookie
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -72,8 +72,8 @@ export const loginUser = asyncHandler(async (req, res) => {
   // Set token in cookie
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -85,18 +85,5 @@ export const loginUser = asyncHandler(async (req, res) => {
     success: true,
     token,
     data: userResponse,
-  });
-});
-
-export const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password");
-
-  if (!user) {
-    throw new AppError("User not found.", 404);
-  }
-
-  res.status(200).json({
-    success: true,
-    data: user,
   });
 });
