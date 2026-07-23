@@ -51,6 +51,35 @@ afterAll(async () => {
 });
 
 describe("Vehicle API", () => {
+  it("should get all vehicles without authentication", async () => {
+    const res = await request(app).get("/api/vehicles");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it("should purchase vehicle without authentication", async () => {
+    const created = await request(app)
+      .post("/api/vehicles")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({
+        make: "Tesla",
+        model: uniqueModel("Model 3"),
+        category: "Sedan",
+        price: 3000000,
+        quantity: 3,
+      });
+
+    const id = created.body.data._id;
+
+    const res = await request(app).post(`/api/vehicles/${id}/purchase`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.quantity).toBe(2);
+  });
+
   // create vehicle test
   it("should return 401 when creating vehicle without token", async () => {
     const res = await request(app)

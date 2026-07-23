@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useVehicles } from "../context/VehicleContext";
 import { useToast } from "../context/ToastContext";
@@ -8,7 +7,7 @@ import SearchFilterBar from "../components/SearchFilterBar";
 import VehicleFormModal from "../components/VehicleFormModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 
-// ── Spinner ──────────────────────────────────────────────────────────────────
+// ── Spinner 
 const Spinner = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-4">
     <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
@@ -16,7 +15,7 @@ const Spinner = () => (
   </div>
 );
 
-// ── Stats card ────────────────────────────────────────────────────────────────
+// ── Stats card 
 const StatCard = ({ label, value, color }) => {
   const colors = {
     violet: "bg-violet-50 text-violet-700 border-violet-200",
@@ -32,14 +31,14 @@ const StatCard = ({ label, value, color }) => {
   );
 };
 
-// ── Plus icon ─────────────────────────────────────────────────────────────────
+// ── Plus icon 
 const PlusIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
   </svg>
 );
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+// ── Dashboard 
 function Dashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const {
@@ -59,12 +58,12 @@ function Dashboard() {
 
   const isAdmin = user?.role === "admin";
 
-  // ── Fetch on auth ───────────────────────────────────────────────────────────
+  // ── Fetch vehicles for everyone 
   useEffect(() => {
-    if (isAuthenticated) fetchVehicles();
-  }, [isAuthenticated, fetchVehicles]);
+    fetchVehicles();
+  }, [fetchVehicles]);
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
+  // ── Handlers 
   const handleSearch = useCallback((params) => searchVehicles(params), [searchVehicles]);
   const handleClear = useCallback(() => fetchVehicles(), [fetchVehicles]);
 
@@ -141,39 +140,7 @@ function Dashboard() {
     );
   }
 
-  // ── Not logged in — landing ─────────────────────────────────────────────────
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[82vh] px-6 text-center">
-        <div className="text-8xl mb-6 select-none animate-bounce" style={{ animationDuration: "2s" }}>🚗</div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-4 leading-tight">
-          Welcome to{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-600">
-            Precision Auto
-          </span>
-        </h1>
-        <p className="text-slate-500 text-lg mb-10 max-w-md leading-relaxed">
-          Browse our premium vehicle inventory, filter by category and price range, and find your perfect car.
-        </p>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Link
-            to="/login"
-            className="px-8 py-3.5 bg-violet-600 text-white font-bold rounded-2xl hover:bg-violet-700 transition-all shadow-lg shadow-violet-200 text-sm"
-          >
-            Login to Browse
-          </Link>
-          <Link
-            to="/register"
-            className="px-8 py-3.5 border-2 border-violet-200 text-violet-700 font-bold rounded-2xl hover:bg-violet-50 transition-all text-sm"
-          >
-            Create Account
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
-  // ── Authenticated dashboard ─────────────────────────────────────────────────
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -184,7 +151,13 @@ function Dashboard() {
             Vehicle Inventory
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Welcome back, <span className="font-semibold text-violet-600">{user?.name}</span>
+            {isAuthenticated ? (
+              <>
+                Welcome back, <span className="font-semibold text-violet-600">{user?.name}</span>
+              </>
+            ) : (
+              "Browse our latest inventory and purchase vehicles instantly."
+            )}
           </p>
         </div>
 
