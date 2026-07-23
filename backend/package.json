@@ -12,6 +12,7 @@
   },
   "jest": {
     "testEnvironment": "node"
+    ,"testTimeout": 20000
   },
   "keywords": [],
   "author": "",

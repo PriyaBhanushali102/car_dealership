@@ -35,14 +35,14 @@ Development followed **Test-Driven Development (Red → Green → Refactor)** wi
 
 ## Tech Stack
 
-| Layer    | Technology                                      |
-| -------- | ----------------------------------------------- |
-| Backend  | Node.js, Express.js                             |
-| Database | MongoDB (Atlas or local) via Mongoose           |
-| Auth     | JWT (`jsonwebtoken`), bcryptjs                  |
-| Testing  | Jest, Supertest                                 |
+| Layer    | Technology                                     |
+| -------- | ---------------------------------------------- |
+| Backend  | Node.js, Express.js                            |
+| Database | MongoDB (Atlas or local) via Mongoose          |
+| Auth     | JWT (`jsonwebtoken`), bcryptjs                 |
+| Testing  | Jest, Supertest                                |
 | Frontend | React 19, Vite, Tailwind CSS 4, React Router 7 |
-| HTTP     | Axios                                           |
+| HTTP     | Axios                                          |
 
 ---
 
@@ -96,15 +96,15 @@ Development followed **Test-Driven Development (Red → Green → Refactor)** wi
 
 ### Vehicles (Protected — requires `Authorization: Bearer <token>`)
 
-| Method | Endpoint                     | Role    | Description                     |
-| ------ | ---------------------------- | ------- | ------------------------------- |
-| POST   | `/api/vehicles`              | User    | Add a new vehicle               |
-| GET    | `/api/vehicles`              | User    | List all vehicles               |
-| GET    | `/api/vehicles/search`       | User    | Search / filter vehicles        |
-| PUT    | `/api/vehicles/:id`          | User    | Update vehicle details          |
-| DELETE | `/api/vehicles/:id`          | Admin   | Delete a vehicle                |
-| POST   | `/api/vehicles/:id/purchase` | User    | Purchase — decreases quantity   |
-| POST   | `/api/vehicles/:id/restock`  | Admin   | Restock — increases quantity    |
+| Method | Endpoint                     | Role  | Description                   |
+| ------ | ---------------------------- | ----- | ----------------------------- |
+| POST   | `/api/vehicles`              | User  | Add a new vehicle             |
+| GET    | `/api/vehicles`              | User  | List all vehicles             |
+| GET    | `/api/vehicles/search`       | User  | Search / filter vehicles      |
+| PUT    | `/api/vehicles/:id`          | User  | Update vehicle details        |
+| DELETE | `/api/vehicles/:id`          | Admin | Delete a vehicle              |
+| POST   | `/api/vehicles/:id/purchase` | User  | Purchase — decreases quantity |
+| POST   | `/api/vehicles/:id/restock`  | Admin | Restock — increases quantity  |
 
 ### Vehicle Object Schema
 
@@ -224,7 +224,7 @@ PORT=5000
 MONGO_URI=mongodb+srv://<user>:<password>@<cluster>/<dbname>
 JWT_SECRET=your_strong_secret_here
 JWT_EXPIRATION=1d
-CORS_ORIGIN=http://localhost:5173
+CORS_ORIGIN=http://localhost:5174
 ```
 
 ---
@@ -237,11 +237,11 @@ npm run seed
 
 Pre-seeded accounts:
 
-| Email          | Password   | Role  |
-| -------------- | ---------- | ----- |
-| admin@test.com | admin1234  | admin |
-| john@test.com  | john1234   | user  |
-| alice@test.com | alice1234  | user  |
+| Email          | Password  | Role  |
+| -------------- | --------- | ----- |
+| admin@test.com | admin1234 | admin |
+| john@test.com  | john1234  | user  |
+| alice@test.com | alice1234 | user  |
 
 ---
 
@@ -294,26 +294,23 @@ npm test -- tests/app.test.js
 
 ## Test Report
 
-Latest full suite run (Jest + Supertest against MongoDB Atlas):
+See `TEST_REPORT.md` for the captured test run output, diagnosis, and reproduction steps.
 
-```
-PASS  tests/app.test.js
-PASS  tests/auth.test.js
-PASS  tests/vehicles.test.js
+Summary (latest run captured 2026-07-23):
 
-Test Suites: 3 passed, 3 total
-Tests:       19 passed, 19 total
-Snapshots:   0 total
-Time:        ~13 s
-```
+- Test Suites: 1 failed, 2 passed, 3 total
+- Tests: 15 failed, 4 passed, 19 total
+- Key issue: Jest hook timeouts while connecting to MongoDB (see `TEST_REPORT.md`)
+
+If you fixed the DB connection and re-ran tests successfully, update this section with the new passing summary and timestamp.
 
 ### Test Coverage by Suite
 
-| Suite                | Test Cases                                                                                          |
-| -------------------- | --------------------------------------------------------------------------------------------------- |
-| `app.test.js`        | `GET /` health check returns 200                                                                    |
-| `auth.test.js`       | Register new user (201), duplicate email rejected (400), login with valid credentials (200)         |
-| `vehicles.test.js`   | 401 without token; create vehicle (201); get all (200); update (200) + 404; delete admin (200) + 404; search by make + empty result; purchase (200) + out-of-stock (400) + 404; restock admin (200) + non-admin 403 + 404 |
+| Suite              | Test Cases                                                                                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app.test.js`      | `GET /` health check returns 200                                                                                                                                                                                          |
+| `auth.test.js`     | Register new user (201), duplicate email rejected (400), login with valid credentials (200)                                                                                                                               |
+| `vehicles.test.js` | 401 without token; create vehicle (201); get all (200); update (200) + 404; delete admin (200) + 404; search by make + empty result; purchase (200) + out-of-stock (400) + 404; restock admin (200) + non-admin 403 + 404 |
 
 ### TDD Commit Pattern (Red → Green → Refactor)
 
@@ -345,19 +342,19 @@ a7068bc  test(vehicle): add failing tests for vehicle restock endpoint       ←
 
 > Run `npm run dev` in both `backend/` and `frontend/` then open `http://localhost:5173`.
 
-| Screen               | Description                                              |
-| -------------------- | -------------------------------------------------------- |
-| Login page           | Auth form with violet gradient, error feedback           |
-| Register page        | Account creation form                                    |
-| Vehicle dashboard    | Grid of all vehicles with stats bar and search bar       |
+| Screen               | Description                                                        |
+| -------------------- | ------------------------------------------------------------------ |
+| Login page           | Auth form with violet gradient, error feedback                     |
+| Register page        | Account creation form                                              |
+| Vehicle dashboard    | Grid of all vehicles with stats bar and search bar                 |
 | Vehicle card (user)  | Category badge, stock badge, Purchase button (disabled when qty=0) |
-| Vehicle card (admin) | Edit / Delete / Restock inline stepper                   |
-| Search & filter      | Filter by make, model, category, min/max price           |
-| Add / Edit modal     | Admin vehicle form modal                                 |
-| Delete confirm       | Admin delete confirmation modal                          |
-| Restock panel        | Inline +/− quantity stepper with Confirm button          |
+| Vehicle card (admin) | Edit / Delete / Restock inline stepper                             |
+| Search & filter      | Filter by make, model, category, min/max price                     |
+| Add / Edit modal     | Admin vehicle form modal                                           |
+| Delete confirm       | Admin delete confirmation modal                                    |
+| Restock panel        | Inline +/− quantity stepper with Confirm button                    |
 
-*Add screenshots to `docs/screenshots/` and link them here.*
+_Add screenshots to `docs/screenshots/` and link them here._
 
 ---
 
@@ -365,10 +362,10 @@ a7068bc  test(vehicle): add failing tests for vehicle restock endpoint       ←
 
 ### Which AI tools were used
 
-| Tool       | Purpose                                                   |
-| ---------- | --------------------------------------------------------- |
-| **Cursor** | Primary IDE AI (Composer / Agent mode) — used throughout  |
-| **ChatGPT**| Used in earlier sessions for TDD planning and code review |
+| Tool                            | Purpose                                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Cursor**                      | Primary IDE AI (Composer / Agent mode) — used throughout                                                  |
+| **ChatGPT**                     | Used in earlier sessions for TDD planning and code review                                                 |
 | **Google Antigravity (Gemini)** | Used for final project audit, restock UI implementation, dependency cleanup, and README/PROMPTS authoring |
 
 ---
@@ -408,11 +405,11 @@ Co-authored-by: ChatGPT <AI@users.noreply.github.com>
 
 | Part     | Suggested host            |
 | -------- | ------------------------- |
-| Frontend | Vercel        |
-| Backend  | Render        |
+| Frontend | Vercel                    |
+| Backend  | Render                    |
 | Database | MongoDB Atlas (free tier) |
 
-Live URL: *Add when deployed*
+Live URL: *https://cardealership.vercel.app/*
 
 ---
 

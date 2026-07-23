@@ -16,38 +16,29 @@ beforeAll(async () => {
   // Normal User
   const userEmail = `user${stamp}@example.com`;
 
-  const userRes = await request(app)
-    .post("/api/auth/register")
-    .send({
-      name: "Normal User",
-      email: userEmail,
-      password: "123456",
-    });
+  const userRes = await request(app).post("/api/auth/register").send({
+    name: "Normal User",
+    email: userEmail,
+    password: "123456",
+  });
 
   userToken = userRes.body.token;
 
   // Admin User
   const adminEmail = `admin${stamp}@example.com`;
 
-  await request(app)
-    .post("/api/auth/register")
-    .send({
-      name: "Admin User",
-      email: adminEmail,
-      password: "123456",
-    });
+  await request(app).post("/api/auth/register").send({
+    name: "Admin User",
+    email: adminEmail,
+    password: "123456",
+  });
 
-  await User.findOneAndUpdate(
-    { email: adminEmail },
-    { role: "admin" }
-  );
+  await User.findOneAndUpdate({ email: adminEmail }, { role: "admin" });
 
-  const adminLogin = await request(app)
-    .post("/api/auth/login")
-    .send({
-      email: adminEmail,
-      password: "123456",
-    });
+  const adminLogin = await request(app).post("/api/auth/login").send({
+    email: adminEmail,
+    password: "123456",
+  });
 
   adminToken = adminLogin.body.token;
 
@@ -60,7 +51,6 @@ afterAll(async () => {
 });
 
 describe("Vehicle API", () => {
-
   // create vehicle test
   it("should return 401 when creating vehicle without token", async () => {
     const res = await request(app)
@@ -185,7 +175,7 @@ describe("Vehicle API", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
   });
-  
+
   it("should return 404 when deleting non-existent vehicle", async () => {
     const fakeId = new mongoose.Types.ObjectId();
 
@@ -199,7 +189,6 @@ describe("Vehicle API", () => {
 
   // search test
   it("should search vehicles by make/model/category", async () => {
-
     await request(app)
       .post("/api/vehicles")
       .set("Authorization", `Bearer ${userToken}`)
@@ -348,4 +337,3 @@ describe("Vehicle API", () => {
     expect(res.body.success).toBe(false);
   });
 });
-
