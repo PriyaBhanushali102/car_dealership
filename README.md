@@ -1,4 +1,9 @@
-# 🚗 Precision Auto — Car Dealership Inventory System
+# Precision Auto — Car Dealership Inventory System
+
+🔗 **Live Demo:** https://car-dealership-wine.vercel.app
+📦 **Backend API:** https://car-dealership-dozs.onrender.com
+
+## Overview
 
 A full-stack **Car Dealership Inventory System** built as a TDD kata. The backend provides a RESTful API with JWT authentication, complete vehicle CRUD, inventory search, and purchase/restock operations. The frontend is a React + Tailwind CSS SPA for browsing, searching, purchasing, and (for admins) managing the full vehicle inventory.
 
@@ -403,13 +408,11 @@ Co-authored-by: ChatGPT <AI@users.noreply.github.com>
 
 ## Optional Deployment
 
-| Part     | Suggested host            |
-| -------- | ------------------------- |
-| Frontend | Vercel                    |
-| Backend  | Render                    |
-| Database | MongoDB Atlas (free tier) |
-
-Live URL: *https://cardealership.vercel.app/*
+| Part     | Suggested host            | URL                                      |
+| -------- | ------------------------- | ---------------------------------------- |
+| Frontend | Vercel                    | https://car-dealership-wine.vercel.app   |
+| Backend  | Render                    | https://car-dealership-dozs.onrender.com |
+| Database | MongoDB Atlas (free tier) |                                          |
 
 ---
 
