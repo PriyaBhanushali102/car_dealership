@@ -45,7 +45,7 @@ function Dashboard() {
   const {
     vehicles, isLoading, error,
     fetchVehicles, searchVehicles,
-    addVehicle, editVehicle, removeVehicle, purchaseVehicle,
+    addVehicle, editVehicle, removeVehicle, purchaseVehicle, restockVehicle,
   } = useVehicles();
   const { addToast } = useToast();
 
@@ -53,6 +53,7 @@ function Dashboard() {
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [deletingVehicle, setDeletingVehicle] = useState(null);
   const [purchasingId, setPurchasingId] = useState(null);
+  const [restockingId, setRestockingId] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -76,6 +77,18 @@ function Dashboard() {
       addToast(err.response?.data?.message || "Purchase failed", "error");
     } finally {
       setPurchasingId(null);
+    }
+  };
+
+  const handleRestock = async (id, quantity) => {
+    setRestockingId(id);
+    try {
+      await restockVehicle(id, quantity);
+      addToast(`Restocked successfully! (+${quantity} units) 📦`, "success");
+    } catch (err) {
+      addToast(err.response?.data?.message || "Restock failed", "error");
+    } finally {
+      setRestockingId(null);
     }
   };
 
@@ -239,7 +252,9 @@ function Dashboard() {
               onPurchase={handlePurchase}
               onEdit={(v) => { setEditingVehicle(v); setShowForm(true); }}
               onDelete={setDeletingVehicle}
+              onRestock={handleRestock}
               isPurchasing={purchasingId === vehicle._id}
+              isRestocking={restockingId === vehicle._id}
             />
           ))}
         </div>

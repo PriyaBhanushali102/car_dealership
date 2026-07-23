@@ -61,6 +61,12 @@ export const VehicleProvider = ({ children }) => {
     return res.data.data;
   };
 
+  const restockVehicle = async (id, quantity) => {
+    const res = await vehicleService.restockVehicle(id, quantity);
+    setVehicles((prev) => prev.map((v) => (v._id === id ? res.data.data : v)));
+    return res.data.data;
+  };
+
   return (
     <VehicleContext.Provider
       value={{
@@ -73,6 +79,7 @@ export const VehicleProvider = ({ children }) => {
         editVehicle,
         removeVehicle,
         purchaseVehicle,
+        restockVehicle,
       }}
     >
       {children}

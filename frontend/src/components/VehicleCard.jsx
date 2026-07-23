@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 const CATEGORY_CONFIG = {
@@ -27,6 +28,12 @@ const CATEGORY_CONFIG = {
   },
 };
 
+const RestockIcon = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
+  </svg>
+);
+
 const EditIcon = () => (
   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -39,7 +46,7 @@ const TrashIcon = () => (
   </svg>
 );
 
-function VehicleCard({ vehicle, onPurchase, onEdit, onDelete, isPurchasing, animIndex = 0 }) {
+function VehicleCard({ vehicle, onPurchase, onEdit, onDelete, onRestock, isPurchasing, isRestocking, animIndex = 0 }) {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const config = CATEGORY_CONFIG[vehicle.category] || CATEGORY_CONFIG.Sedan;
@@ -52,6 +59,20 @@ function VehicleCard({ vehicle, onPurchase, onEdit, onDelete, isPurchasing, anim
     : isLowStock
     ? { label: `Only ${vehicle.quantity} left`, cls: "bg-amber-100 text-amber-700 border-amber-200" }
     : { label: `${vehicle.quantity} in stock`, cls: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+
+  // ── Restock inline state ──────────────────────────────────────────────────
+  const [showRestock, setShowRestock] = useState(false);
+  const [restockQty, setRestockQty] = useState(1);
+
+  const handleRestockConfirm = async () => {
+    if (restockQty < 1) return;
+    await onRestock(vehicle._id, restockQty);
+    setShowRestock(false);
+    setRestockQty(1);
+  };
+
+  const increment = () => setRestockQty((q) => q + 1);
+  const decrement = () => setRestockQty((q) => Math.max(1, q - 1));
 
   return (
     <div
@@ -98,28 +119,81 @@ function VehicleCard({ vehicle, onPurchase, onEdit, onDelete, isPurchasing, anim
       </div>
 
       {isAdmin && (
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <button
-            onClick={(e) => {
-                    e.stopPropagation();
-              onEdit(vehicle);
-            }}
-            className="flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 py-3 text-violet-700 hover:bg-violet-100 transition"
-          >
-            <EditIcon />
-            Edit
-          </button>
+        <div className="flex flex-col gap-3 pt-2">
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(vehicle);
-            }}
-            className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-3 text-red-600 hover:bg-red-100 transition"
-          >
-            <TrashIcon />
-            Delete
-          </button>
+          {/* Edit / Delete row */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(vehicle); }}
+              className="flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 py-3 text-violet-700 hover:bg-violet-100 transition text-sm font-semibold"
+            >
+              <EditIcon />
+              Edit
+            </button>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(vehicle); }}
+              className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-3 text-red-600 hover:bg-red-100 transition text-sm font-semibold"
+            >
+              <TrashIcon />
+              Delete
+            </button>
+          </div>
+
+          {/* Restock toggle button */}
+          {!showRestock ? (
+            <button
+              onClick={() => setShowRestock(true)}
+              className="flex items-center justify-center gap-2 w-full rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-emerald-700 hover:bg-emerald-100 transition text-sm font-semibold"
+            >
+              <RestockIcon />
+              Restock
+            </button>
+          ) : (
+            /* Inline restock panel */
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col gap-3">
+              <p className="text-xs font-bold text-emerald-700 text-center tracking-wide uppercase">
+                Add units to stock
+              </p>
+
+              {/* Quantity stepper */}
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={decrement}
+                  disabled={restockQty <= 1}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-emerald-200 text-emerald-700 font-bold text-lg hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  −
+                </button>
+                <span className="w-12 text-center text-xl font-extrabold text-emerald-800 select-none">
+                  {restockQty}
+                </span>
+                <button
+                  onClick={increment}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-emerald-200 text-emerald-700 font-bold text-lg hover:bg-emerald-100 transition"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Confirm / Cancel */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { setShowRestock(false); setRestockQty(1); }}
+                  className="py-2 rounded-xl border border-slate-200 bg-white text-slate-500 text-sm font-semibold hover:bg-slate-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRestockConfirm}
+                  disabled={isRestocking}
+                  className="py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-wait transition shadow-md shadow-emerald-200"
+                >
+                  {isRestocking ? "Saving…" : `Confirm +${restockQty}`}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
