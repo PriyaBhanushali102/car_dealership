@@ -21,7 +21,7 @@ router.get("/search", searchVehicles);
 router.put("/:id", protect, updateVehicle);
 router.patch("/:id", protect, updateVehicle);
 router.delete("/:id", protect, adminOnly, deleteVehicle);
-router.post("/:id/purchase", purchaseVehicle);
+router.post("/:id/purchase", protect, purchaseVehicle);
 router.post("/:id/restock", protect, adminOnly, restockVehicle);
 
 export default router;

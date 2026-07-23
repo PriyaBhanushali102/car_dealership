@@ -59,7 +59,7 @@ describe("Vehicle API", () => {
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 
-  it("should purchase vehicle without authentication", async () => {
+  it("should require authentication to purchase a vehicle", async () => {
     const created = await request(app)
       .post("/api/vehicles")
       .set("Authorization", `Bearer ${adminToken}`)
@@ -75,9 +75,8 @@ describe("Vehicle API", () => {
 
     const res = await request(app).post(`/api/vehicles/${id}/purchase`);
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.quantity).toBe(2);
+    expect(res.statusCode).toBe(401);
+    expect(res.body.success).toBe(false);
   });
 
   // create vehicle test

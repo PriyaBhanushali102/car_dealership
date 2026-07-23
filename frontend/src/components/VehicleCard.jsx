@@ -47,7 +47,7 @@ const TrashIcon = () => (
 );
 
 function VehicleCard({ vehicle, onPurchase, onEdit, onDelete, onRestock, isPurchasing, isRestocking, animIndex = 0 }) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const isAdmin = user?.role === "admin";
   const config = CATEGORY_CONFIG[vehicle.category] || CATEGORY_CONFIG.Sedan;
 
@@ -104,17 +104,17 @@ function VehicleCard({ vehicle, onPurchase, onEdit, onDelete, onRestock, isPurch
 
         {/* Purchase button */}
         <button
-          onClick={() => !isOutOfStock && !isPurchasing && onPurchase(vehicle._id)}
-          disabled={isOutOfStock || isPurchasing}
+          onClick={() => isAuthenticated && !isOutOfStock && !isPurchasing && onPurchase(vehicle._id)}
+          disabled={isOutOfStock || isPurchasing || !isAuthenticated}
           className={`w-full py-3 rounded-2xl font-semibold text-sm transition-all duration-200 ${
-            isOutOfStock
+            isOutOfStock || !isAuthenticated
               ? "bg-slate-100 text-slate-400 cursor-not-allowed"
               : isPurchasing
               ? "bg-violet-400 text-white cursor-wait"
               : "bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-200 active:scale-95"
           }`}
         >
-          {isPurchasing ? "Processing…" : isOutOfStock ? "Out of Stock" : "Purchase Now"}
+          {isPurchasing ? "Processing…" : !isAuthenticated ? "Login to Purchase" : isOutOfStock ? "Out of Stock" : "Purchase Now"}
         </button>
       </div>
 
