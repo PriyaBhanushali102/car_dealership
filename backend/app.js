@@ -9,11 +9,19 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://car-dealership-wine.vercel.app",
+];
+
 const corsOptions = {
-  origin:
-    process.env.CORS_ORIGIN ||
-    "http://localhost:5173" ||
-    "https://car-dealership-wine.vercel.app",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
