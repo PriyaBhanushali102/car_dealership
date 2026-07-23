@@ -1,12 +1,18 @@
 const errorHandler = (err, req, res, next) => {
   console.log("ERROR =>", err);
-  err.statusCode = err.statusCode || 500;
 
-  err.message = err.message || "Server Error";
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Server Error";
 
-  res.status(err.statusCode).json({
+  // Invalid MongoDB ObjectId (e.g. /api/vehicles/invalid-id)
+  if (err.name === "CastError") {
+    statusCode = 400;
+    message = "Invalid ID format";
+  }
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message,
+    message,
   });
 };
 
