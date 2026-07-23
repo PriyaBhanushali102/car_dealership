@@ -1,12 +1,32 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import * as authService from "../services/authService";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // starts true for session restore
   const [error, setError] = useState(null);
+
+  // Restore session from localStorage token on mount
+  useEffect(() => {
+    const restoreSession = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const res = await authService.getMe();
+        setUser(res.data.data);
+      } catch {
+        localStorage.removeItem("token");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    restoreSession();
+  }, []);
 
   const registerUser = async (userData) => {
     try {
@@ -49,7 +69,15 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, error, registerUser, loginUser, logout, isAuthenticated: !!user }}
+      value={{
+        user,
+        isLoading,
+        error,
+        registerUser,
+        loginUser,
+        logout,
+        isAuthenticated: !!user,
+      }}
     >
       {children}
     </AuthContext.Provider>

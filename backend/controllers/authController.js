@@ -87,3 +87,11 @@ export const loginUser = asyncHandler(async (req, res) => {
     data: userResponse,
   });
 });
+
+// Get current authenticated user
+export const getMe = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: req.user,
+  });
+});
