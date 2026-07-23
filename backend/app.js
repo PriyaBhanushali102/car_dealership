@@ -10,7 +10,10 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 const app = express();
 
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:5174",
+  origin:
+    process.env.CORS_ORIGIN ||
+    "http://localhost:5173" ||
+    "https://car-dealership-wine.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
