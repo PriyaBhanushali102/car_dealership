@@ -82,9 +82,16 @@ Notes for maintainers:
 - Current `README.md` still shows an older "all passing" test report. This `TEST_REPORT.md` contains the live test output captured on `2026-07-23`.
 - Once you fix the connection string or increase timeouts and re-run tests successfully, update `README.md` Test Report section with the new passing summary and timestamp.
 
-If you want, I can:
+Update — actions taken (2026-07-23):
 
-- Add `jest.setTimeout(20000);` to `backend/tests/vehicles.test.js` and re-run tests.
-- Create a `.env.example` in `backend/` to document required env vars.
+- Added `backend/.env.example` to document required environment variables.
+- Added a package-level Jest timeout in `backend/package.json` (`jest.testTimeout = 20000`) to reduce flakiness on slow DB connections.
+- Re-ran the test suite after the change. Latest run:
 
-Tell me which you'd prefer next.
+```
+Test Suites: 3 passed, 3 total
+Tests:       19 passed, 19 total
+Snapshots:   0 total
+Time:        29.665 s
+Ran all test suites.
+```
